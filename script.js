@@ -21,10 +21,6 @@ function operate(num1, num2, operation){
     }
 }
 
-function generateExpression(expression){
-
-}
-
 const display = document.querySelector('.display');
 const buttons = document.querySelectorAll('button');
 
@@ -39,18 +35,32 @@ var expression = '';
 
 buttons.forEach((button) => {
     button.addEventListener('click', ()=> {
-        if(!(firstOperand))
+
+        //Error detection (doesn't really work, NaN shows up in the display)
+        if(typeof(firstOperand)!='number' || typeof(lastOperand)!='number'){
+            expression = 'ERROR! Incorrect operands';
+            display.textContent = expression;
+            return;
+        }
+
+        //if the button pressed is an operator then either expression already has an operator or it doesn't
         if(button.classList.contains("operator")){
-            if(!expression_Half_Complete){
-                expression_Half_Complete = true;
-                firstOperand = parseInt(expression);
+            if(!expression_Half_Complete){ //if it doesn't (i.e. expression_Half_Complete == false)
+                                            //then we know that expression only has
+                                            //the first operand so far, 
+                                            //therefore we can assign the firstOperand to the expression
+                expression_Half_Complete = true; //we set expression_Half_Complete to true 
+                                                //because now the expression is half complete
+                firstOperand = parseFloat(expression);
                 operator = button.textContent;
                 expression = expression + button.textContent;
 
             }else if(expression_Half_Complete){
-                lastOperand = parseInt(expression.split(operator)[1]);
-                let result = operate(firstOperand, lastOperand, operator);
-                
+                lastOperand = parseFloat(expression.split(operator)[1]); //secondoperand is the part of the expression 
+                                                                        //after the operator thus we can split the string
+                                                                        //and assign the second slice to lastOperand 
+                let result = operate(firstOperand, lastOperand, operator); //result will be calculated and it will become
+                                                                            //the firstOperand for the next operation
                 firstOperand = result;
                 operator = button.textContent;
 
@@ -60,7 +70,7 @@ buttons.forEach((button) => {
         }
 
         if(button.classList.contains("equals")){
-            lastOperand = parseInt(expression.split(operator)[1]);
+            lastOperand = parseFloat(expression.split(operator)[1]);
             let result = operate(firstOperand, lastOperand, operator);
                 
             expression = result.toString();
@@ -79,7 +89,33 @@ buttons.forEach((button) => {
             expression = expression.slice(0, -1);
         }
 
+        if(button.classList.contains("dot")){
+            if(!expression_Half_Complete){
+                if(!expression.includes('.')){ //expression only consists of the
+                    // first operand so far therefore checking the entire expression for a dot.
+                    expression = expression + button.textContent;
+                }
+            } else {
+                if(!expression.split(operator)[1].includes('.')){ //checking the second operand in case 
+                    //the expression is half complete
+                    expression = expression + button.textContent;
+                }
+            }
+        }
+
         display.textContent = expression;
     })
+});
+
+//keyboard support
+window.addEventListener('keydown', (keypress) => {
+    let k = keypress.key;
+    if(k == 'Enter'){
+        k = '=';
+    }
+    const btn = document.querySelector('button[data-key='+CSS.escape(k)+']');
+    if(btn){
+        btn.click();
+    }
 });
 
